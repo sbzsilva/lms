@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <!-- Required library scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- jQuery UI -->
+    <script>
+        // First check if jQuery is loaded
+        window.jQuery = window.jQuery || {};
+        
+        // Create a queue of jQuery UI URLs to try
+        window.jQueryUIUrls = [
+            'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
+            'https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js',
+            '/static/js/jquery-ui.min.js' // Local fallback
+        ];
+        
+        // Function to load jQuery UI
+        window.loadjQueryUI = function() {
+            if (typeof window.jQuery === 'undefined') {
+                console.error('jQuery not available');
+                $('#debug-output').text('Critical Error: jQuery not loaded before attempting to load jQuery UI').show();
+                return;
+            }
+            
+            if (typeof window.jQuery.ui !== 'undefined') {
+                console.log('jQuery UI already loaded');
+                return;
+            }
+            
+            // Try loading from each URL until one works
+            (function tryNextUrl(index) {
+                if (index >= window.jQueryUIUrls.length) {
+                    console.error('Failed to load jQuery UI from all sources');
+                    $('#debug-output').text('Warning: jQuery UI not loaded - some features may be unavailable').show();
+                    console.warn('jQuery UI not loaded - some features may be unavailable');
+                    return;
+                }
+                
+                var script = document.createElement('script');
+                script.src = window.jQueryUIUrls[index];
+                script.onload = function() {
+                    console.log('jQuery UI loaded successfully from source: ' + window.jQueryUIUrls[index]);
+                    
+                    // Verify that jQuery UI was actually loaded
+                    if (typeof window.jQuery.ui === 'undefined') {
+                        console.error('jQuery UI failed to initialize: ' + window.jQueryUIUrls[index]);
+                        tryNextUrl(index + 1);
+                    } else {
+                        console.log('jQuery UI initialized successfully');
+                        // Trigger a custom event so other components can know jQuery UI is available
+                        $(document).trigger('jquery-ui-loaded');
+                    }
+                };
+                script.onerror = function() {
+                    console.error('Failed to load jQuery UI from: ' + window.jQueryUIUrls[index]);
+                    tryNextUrl(index + 1);
+                };
+                document.head.appendChild(script);
+            })(0);
+        }
+        
+        // Try loading jQuery UI after page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                loadjQueryUI();
+            }, 2000); // Delay to let other scripts load first
+        });
+    </script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    
+    <!-- Debug output -->
+    <div id="debug-output" style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #ffdddd; padding: 10px; display: none;"></div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Loading overlay CSS -->
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+        }
+        
+        .loading-overlay.active {
+            visibility: visible;
+        }
+        
+        .alert-dismissible {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            max-width: 400px;
+        }
+        
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background-color: #e8f5e9; /* Light green background */
+            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <!-- Error alert -->
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
+        <span id="errorMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
+    <div class="container-fluid p-4">
+        <h1 class="mb-4">LMS Dashboard</h1>
+        
+        <div class="row">
+            <!-- Summary cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Students</h5>
+                            <h2 id="totalStudents" class="card-text">Loading...</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Courses</h5>
+                            <h2 id="activeCourses" class="card-text">Loading...</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Revenue</h5>
+                            <h2 id="totalRevenue" class="card-text">Loading...</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Avg. Rating</h5>
+                            <h2 id="avgRating" class="card-text">Loading...</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Most Enrolled Courses Table -->
+            <div class="col-md-12 mb-4">
+                <h3>Most Enrolled Courses</h3>
+                <div class="table-responsive">
+                    <table id="coursesTable" class="display table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Course ID</th>
+                                <th>Title</th>
+                                <th>Student Count</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Category Enrollment Chart -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Enrollments by Category</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Distribution Chart -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Revenue Distribution</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Show loading overlay
+            function showLoading() {
+                $('#loadingOverlay').addClass('active');
+            }
+            
+            // Hide loading overlay
+            function hideLoading() {
+                $('#loadingOverlay').removeClass('active');
+            }
+            
+            // Show error message
+            function showError(message) {
+                $('#errorMessage').text(message);
+                $('#errorAlert').removeClass('d-none').show();
+            }
+            
+            // Clear error message
+            function clearError() {
+                $('#errorAlert').hide();
+            }
+            
+            // Initialize error logging
+            function logError(message, error) {
+                console.error(message, error);
+                $('#debug-output').text(message + ': ' + (error.message || error)).show();
+                showError(message + ': ' + (error.message || error));
+            }
+
+            // Verify jQuery is loaded
+            if (typeof jQuery === 'undefined') {
+                logError('Critical Error', 'jQuery not loaded');
+                return;
+            }
+
+            // Check if DataTables is loaded
+            if (typeof $.fn.dataTable === 'undefined') {
+                logError('Critical Error', 'DataTables not loaded');
+                return;
+            }
+
+            // Add cache-busting parameter to URL
+            function addCacheBuster(url) {
+                return url + '?_=' + new Date().getTime();
+            }
+
+            // Function to load table data with fallback
+            function loadTableData(tableSelector, apiUrl, columns, tableName) {
+                try {
+                    var table = $(tableSelector);
+                    
+                    // If table is already initialized, reload it with cache buster
+                    if ($.fn.dataTable.isDataTable(tableSelector)) {
+                        var cacheBusterUrl = addCacheBuster(apiUrl);
+                        console.log(`Reloading ${tableName} with URL: ${cacheBusterUrl}`);
+                        table.DataTable().ajax.url(cacheBusterUrl).load();
+                        return;
+                    }
+
+                    // Otherwise, initialize the table
+                    showLoading();
+                    
+                    table.DataTable({
+                        "processing": true,
+                        "serverSide": false,
+                        "ajax": {
+                            "url": apiUrl,
+                            "dataSrc": "",
+                            "error": function(xhr, error, thrown) {
+                                console.error(`${tableName} AJAX error:`, error, thrown);
+                                console.error('Response text:', xhr.responseText);
+                                
+                                // Try cache-busting again if first attempt fails
+                                setTimeout(function() {
+                                    var cacheBusterUrl = addCacheBuster(apiUrl);
+                                    console.log(`Second attempt ${tableName} with URL: ${cacheBusterUrl}`);
+                                    table.DataTable().ajax.url(cacheBusterUrl).load();
+                                }, 3000);
+                            }
+                        },
+                        "columns": columns,
+                        "initComplete": function(settings, json) {
+                            console.log(`Initialized ${tableName} with data:`, json);
+                            hideLoading();
+                        }
+                    });
+                } catch (error) {
+                    hideLoading();
+                    console.error(`Error initializing ${tableName}:`, error);
+                    $('#debug-output').text(`Critical Error: Failed to initialize table ${tableName}`).show();
+                    showError(`Failed to initialize table ${tableName}`);
+                }
+            }
+
+            // Initialize DataTables
+            loadTableData('#coursesTable', '/api/queries/most_enrolled_courses', [
+                { 
+                    "data": "courseid",  // Changed from course_id to match actual API response
+                    "defaultContent": "N/A",
+                    "title": "Course ID"
+                },
+                { 
+                    "data": "title", 
+                    "defaultContent": "N/A",
+                    "title": "Title"
+                },
+                { 
+                    "data": "student_count", 
+                    "defaultContent": "0",
+                    "title": "Student Count"
+                }
+            ], 'Courses Table');
+
+            loadTableData('#revenueStudentsTable', '/api/queries/top_revenue_students', [
+                { 
+                    "data": "studentid",  // Changed from student_id to match actual API response
+                    "defaultContent": "N/A",
+                    "title": "Student ID"
+                },
+                { 
+                    "data": null,
+                    "defaultContent": "N/A",
+                    "title": "Name",
+                    "render": function(data, type, row) {
+                        return row.firstname + ' ' + row.lastname;
+                    }
+                },
+                { 
+                    "data": "formatted_revenue",  // Using the formatted currency value
+                    "defaultContent": "$0.00",
+                    "title": "Total Revenue"
+                }
+            ], 'Revenue Students Table');
+
+            // Initialize Charts
+            try {
+                showLoading();
+                
+                // Load category enrollments
+                $.getJSON('/api/queries/category_enrollments', function(data) {
+                    if (!data || data.length === 0) {
+                        throw new Error('No category enrollment data available');
+                    }
+
+                    // Create chart
+                    var categoryChart = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.categoryname),
+                            datasets: [{
+                                label: 'Number of Students',
+                                data: data.map(item => item.student_count),
+                                backgroundColor: [
+                                    'rgba(76, 175, 80, 0.7)',
+                                    'rgba(124, 179, 66, 0.7)',
+                                    'rgba(46, 125, 50, 0.7)',
+                                    'rgba(102, 194, 77, 0.7)',
+                                    'rgba(165, 214, 167, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            if (typeof context.raw === 'number') {
+                                                return context.dataset.label + ': ' + context.raw.toFixed(0) + ' students';
+                                            }
+                                            return context.dataset.label + ': ' + context.raw;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }).fail(function(xhr, status, error) {
+                    logError(`Failed to load category data: ${status}`, error);
+                });
+                
+                // Load revenue distribution
+                $.getJSON('/api/queries/revenue_by_type', function(data) {
+                    if (!data || data.length === 0) {
+                        throw new Error('No revenue distribution data available');
+                    }
+
+                    // Create pie chart
+                    var revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
+                        type: 'pie',
+                        data: {
+                            labels: data.map(item => item.payment_type),
+                            datasets: [{
+                                label: 'Revenue Distribution',
+                                data: data.map(item => item.total_amount),
+                                backgroundColor: [
+                                    'rgba(76, 175, 80, 0.6)',
+                                    'rgba(124, 179, 66, 0.6)',
+                                    'rgba(46, 125, 50, 0.6)',
+                                    'rgba(102, 194, 77, 0.6)',
+                                    'rgba(165, 214, 167, 0.6)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            if (typeof context.raw === 'number') {
+                                                return context.labels + ': $' + context.raw.toFixed(2);
+                                            }
+                                            return context.labels + ': $' + context.raw;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }).fail(function(xhr, status, error) {
+                    logError(`Failed to load revenue data: ${status}`, error);
+                });
+            } catch (chartError) {
+                hideLoading();
+                console.error('Chart initialization failed:', chartError);
+                showError('Failed to initialize charts');
+            }
+            
+            // Initialize Summary Cards
+            try {
+                showLoading();
+                
+                // Calculate total students from category enrollments
+                $.getJSON('/api/queries/category_enrollments', function(data) {
+                    if (Array.isArray(data)) {
+                        var totalStudents = data.reduce((sum, item) => sum + (item.student_count || 0), 0);
+                        $('#totalStudents').text(totalStudents.toLocaleString());
+                    } else {
+                        $('#totalStudents').text('N/A');
+                        console.error('Category enrollments data is not an array');
+                    }
+                }).fail(function(xhr, status, error) {
+                    $('#totalStudents').text('N/A');
+                    logError(`Failed to load student data: ${status}`, error);
+                });
+                
+                // Calculate active courses from most enrolled courses
+                $.getJSON('/api/queries/most_enrolled_courses', function(data) {
+                    if (Array.isArray(data)) {
+                        var activeCourses = data.length;
+                        $('#activeCourses').text(activeCourses.toLocaleString());
+                    } else {
+                        $('#activeCourses').text('N/A');
+                        console.error('Most enrolled courses data is not an array');
+                    }
+                }).fail(function(xhr, status, error) {
+                    $('#activeCourses').text('N/A');
+                    logError(`Failed to load course data: ${status}`, error);
+                });
+                
+                // Calculate total revenue from revenue_by_type endpoint
+                $.getJSON('/api/queries/revenue_by_type', function(data) {
+                    if (Array.isArray(data)) {
+                        // Use the formatted revenue value from the server if available
+                        var totalRevenue = data.reduce((sum, item) => {
+                            // Try formatted_revenue first, then total_amount, then default to 0
+                            var value = 0;
+                            if (item.formatted_revenue) {
+                                // Remove $ and commas and convert to float
+                                value = parseFloat(item.formatted_revenue.replace(/[^0-9.-]/g, ''));
+                            } else if (typeof item.total_amount !== 'undefined' && item.total_amount !== null) {
+                                value = parseFloat(item.total_amount);
+                            }
+                            return sum + value;
+                        }, 0);
+                        
+                        // Format as currency using toLocaleString
+                        var formattedRevenue = totalRevenue.toLocaleString('en-US', {
+                            style: 'currency', 
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                        
+                        // Add debug output
+                        console.log('Raw total revenue value:', totalRevenue);
+                        console.log('Formatted revenue value:', formattedRevenue);
+                        
+                        // Set the formatted value
+                        $('#totalRevenue').text(formattedRevenue);
+                    } else {
+                        $('#totalRevenue').text('N/A');
+                        console.error('Revenue by type data is not an array');
+                    }
+                }).fail(function(xhr, status, error) {
+                    $('#totalRevenue').text('N/A');
+                    logError(`Failed to load revenue data: ${status}`, error);
+                });
+                
+                // Set default average rating for now
+                $('#avgRating').text('4.5/5.0');
+                
+            } catch (summaryError) {
+                console.error('Summary card initialization failed:', summaryError);
+                $('#totalStudents').text('N/A');
+                $('#activeCourses').text('N/A');
+                $('#totalRevenue').text('N/A');
+            }
+        });
+    </script>
+</body>
+</html>

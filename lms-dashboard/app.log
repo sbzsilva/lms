@@ -1,0 +1,82 @@
+nohup: ignoring input
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.100:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 574-297-478
+127.0.0.1 - - [05/Jul/2025 19:42:44] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jul/2025 19:42:44] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751744562570 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:42:44] "[35m[1mGET /api/queries/revenue_by_type HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:42:44] "[35m[1mGET /api/queries/top_instructors?_=1751744562571 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:42:44] "[35m[1mGET /api/queries/category_enrollments HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:43:17] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751744294997 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:43:17] "[35m[1mGET /api/queries/top_instructors?_=1751744294998 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:44:00] "[35m[1mGET /api/queries/top_instructors?_=1751743138243 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:44:00] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751743138242 HTTP/1.1[0m" 500 -
+192.168.1.163 - - [05/Jul/2025 19:46:57] "[35m[1mGET /api/queries/top_instructors?_=1751744215515 HTTP/1.1[0m" 500 -
+192.168.1.163 - - [05/Jul/2025 19:46:57] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751744215514 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:47:26] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751743344338 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:47:26] "[35m[1mGET /api/queries/top_instructors?_=1751743344339 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:47:44] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751744562572 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:47:44] "[35m[1mGET /api/queries/top_instructors?_=1751744562573 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:48:17] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751744294999 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:48:17] "[35m[1mGET /api/queries/top_instructors?_=1751744295000 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:49:00] "[35m[1mGET /api/queries/most_enrolled_courses?_=1751743138244 HTTP/1.1[0m" 500 -
+127.0.0.1 - - [05/Jul/2025 19:49:00] "[35m[1mGET /api/queries/top_instructors?_=1751743138245 HTTP/1.1[0m" 500 -
+ * Detected change in '/home/ssilva/lms/lms-dashboard/app.py', reloading
+ * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 574-297-478
+INFO:werkzeug: * Detected change in '/home/ssilva/lms/lms-dashboard/app.py', reloading
+ * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 574-297-478
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:50:45] "GET / HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:50:45] "GET /api/queries/most_enrolled_courses?_=1751745043704 HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+DEBUG:app:Database connection successful
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:50:45] "GET /api/queries/category_enrollments HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:50:45] "GET /api/queries/revenue_by_type HTTP/1.1" 200 -
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:50:45] "GET /api/queries/top_instructors?_=1751745043705 HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+DEBUG:app:Database connection successful
+INFO:werkzeug:192.168.1.163 - - [05/Jul/2025 19:51:57] "GET /api/queries/most_enrolled_courses?_=1751744215516 HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.163 - - [05/Jul/2025 19:51:57] "GET /api/queries/top_instructors?_=1751744215517 HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:26] "GET /api/queries/most_enrolled_courses?_=1751743344340 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:26] "GET /api/queries/top_instructors?_=1751743344341 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:57] "GET / HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:57] "GET /api/queries/top_instructors?_=1751745175590 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:57] "GET /api/queries/category_enrollments HTTP/1.1" 200 -
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:57] "GET /api/queries/revenue_by_type HTTP/1.1" 200 -
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:52:57] "GET /api/queries/most_enrolled_courses?_=1751745175589 HTTP/1.1" 200 -
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Attempting database connection with config: {'dbname': 'lms', 'user': 'ssilva', 'password': 'Pa55w.rd', 'host': 'localhost', 'port': '5432'}
+DEBUG:app:Database connection successful
+DEBUG:app:Database connection successful
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:54:00] "GET /api/queries/top_instructors?_=1751743138247 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [05/Jul/2025 19:54:00] "GET /api/queries/most_enrolled_courses?_=1751743138246 HTTP/1.1" 200 -
