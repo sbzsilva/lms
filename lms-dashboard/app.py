@@ -87,7 +87,8 @@ QUERIES = {
     "top_instructors": "SELECT i.instructorid, i.firstname, i.lastname, COUNT(cr.registrationid) AS student_count FROM lms.instructors i JOIN lms.courses c ON i.instructorid = c.instructorid JOIN lms.courseregistrations cr ON c.courseid = cr.courseid GROUP BY i.instructorid, i.firstname, i.lastname ORDER BY student_count DESC LIMIT 5",
     "category_enrollments": "SELECT ct.name as categoryname, COUNT(cr.registrationid) AS student_count FROM lms.categories ct JOIN lms.courses c ON ct.categoryid = c.categoryid JOIN lms.courseregistrations cr ON c.courseid = cr.courseid GROUP BY ct.name ORDER BY student_count DESC",
     "revenue_by_type": "SELECT payment_type, total_amount, formatted_revenue FROM lms.revenuebytype",
-    "student_revenue_last_year": "SELECT s.studentid, s.firstname, s.lastname, SUM(p.amount) AS totalrevenue FROM lms.paymentrecords p JOIN lms.courseregistrations cr ON p.paymentid = cr.paymentid JOIN lms.students s ON cr.studentid = s.studentid WHERE p.paymentdate >= CURRENT_DATE - INTERVAL '1 year' GROUP BY s.studentid, s.firstname, s.lastname ORDER BY totalrevenue DESC LIMIT 5"
+    "student_revenue_last_year": "SELECT s.studentid, s.firstname, s.lastname, SUM(p.amount) AS totalrevenue FROM lms.paymentrecords p JOIN lms.courseregistrations cr ON p.paymentid = cr.paymentid JOIN lms.students s ON cr.studentid = s.studentid WHERE p.paymentdate >= CURRENT_DATE - INTERVAL '1 year' GROUP BY s.studentid, s.firstname, s.lastname ORDER BY totalrevenue DESC LIMIT 5",
+    "expired_subscriptions": "SELECT s.studentid, s.firstname, s.lastname, c.title AS coursetitle, cr.enddate FROM lms.courseregistrations cr JOIN lms.students s ON cr.studentid = s.studentid JOIN lms.courses c ON cr.courseid = c.courseid WHERE cr.status = 'Completed' AND cr.enddate < CURRENT_DATE AND cr.enddate > CURRENT_DATE - INTERVAL '6 months' ORDER BY cr.enddate DESC"
 }
 
 # Configure logging
@@ -124,10 +125,16 @@ def execute_query(query_name):
         with conn.cursor() as cur:
             app.logger.debug(f"Executing query: {QUERIES[query_name]}")
             cur.execute(QUERIES[query_name])
-            columns = [desc[0] for desc in cur.description]
-            results = [dict(zip(columns, row)) for row in cur.fetchall()]
             
-        app.logger.info(f"Executed query {query_name} successfully")
+            # Handle queries that might not return rows (like CREATE statements)
+            if cur.description:
+                columns = [desc[0] for desc in cur.description]
+                results = [dict(zip(columns, row)) for row in cur.fetchall()]
+                app.logger.info(f"Executed query {query_name} successfully. Found {len(results)} results.")
+            else:
+                results = {"message": "Query executed successfully", "rows_affected": cur.rowcount}
+                app.logger.info(f"Executed non-result query {query_name} successfully. Rows affected: {cur.rowcount}")
+            
         return jsonify(results)
         
     except psycopg2.Error as e:
@@ -139,8 +146,9 @@ def execute_query(query_name):
             "query": query_name
         }), 500
     except Exception as e:
-        app.logger.error(f"Unexpected error: {str(e)}", exc_info=True)
-        return jsonify({"error": "Internal server error"}), 500
+        app.logger.error(f"Unexpected error in {query_name} endpoint: {e}")
+        app.logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
     finally:
         if conn is not None:
             release_db_connection(conn)
